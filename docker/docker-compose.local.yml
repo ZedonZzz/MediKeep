@@ -1,0 +1,6 @@
+services:
+  medikeep-app:
+    image: medikeep:local
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
