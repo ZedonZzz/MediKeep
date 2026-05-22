@@ -155,6 +155,7 @@ export const I18N_TO_INTL_LOCALE = {
   nl: 'nl-NL',
   pl: 'pl-PL',
   th: 'th-TH',
+  'zh-CN': 'zh-CN',
   zh: 'zh-CN',
 };
 

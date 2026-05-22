@@ -6,7 +6,45 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, ConfigDict, ValidationInfo, field_validator
 
 # Supported languages - single source of truth
-SUPPORTED_LANGUAGES = ["en", "fr", "de", "es", "it", "pt", "ru", "sv", "nl", "pl", "zh"]
+SUPPORTED_LANGUAGES = [
+    "en",
+    "fr",
+    "de",
+    "es",
+    "it",
+    "pt",
+    "ru",
+    "sv",
+    "nl",
+    "pl",
+    "zh-CN",
+]
+
+
+def normalize_language_code(language: Optional[str]) -> Optional[str]:
+    """Normalize persisted language preferences to supported app locale codes.
+
+    Generic Chinese (``zh``) and Simplified Chinese tags are canonicalized to
+    ``zh-CN`` so the frontend, backend exports, and stored preferences all use
+    the same locale identifier.
+    """
+    if language is None:
+        return None
+
+    normalized = language.strip()
+    lower_language = normalized.lower()
+
+    if (
+        lower_language == "zh"
+        or lower_language == "zh-cn"
+        or lower_language == "zh-hans"
+        or lower_language.startswith("zh-cn-")
+        or lower_language.startswith("zh-hans-")
+    ):
+        return "zh-CN"
+
+    return lower_language.split("-")[0]
+
 
 # Supported date formats - single source of truth
 # mdy = MM/DD/YYYY (US), dmy = DD/MM/YYYY (UK/International),
@@ -145,11 +183,12 @@ class UserPreferencesBase(BaseModel):
             ValueError: If language is not in supported list
         """
         if v is not None:
-            if v.lower() not in SUPPORTED_LANGUAGES:
+            normalized_language = normalize_language_code(v)
+            if normalized_language not in SUPPORTED_LANGUAGES:
                 raise ValueError(
                     f"Language must be one of: {', '.join(SUPPORTED_LANGUAGES)}"
                 )
-            return v.lower()
+            return normalized_language
         return v
 
     @field_validator("date_format")
@@ -255,11 +294,12 @@ class UserPreferencesUpdate(BaseModel):
     def validate_language(cls, v):
         """Validate language if provided."""
         if v is not None:
-            if v.lower() not in SUPPORTED_LANGUAGES:
+            normalized_language = normalize_language_code(v)
+            if normalized_language not in SUPPORTED_LANGUAGES:
                 raise ValueError(
                     f"Language must be one of: {', '.join(SUPPORTED_LANGUAGES)}"
                 )
-            return v.lower()
+            return normalized_language
         return v
 
     @field_validator("date_format")

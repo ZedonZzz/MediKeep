@@ -9,7 +9,7 @@ The module reads from: frontend/public/locales/{lang}/reportPdf.json
 Translation keys use camelCase to match the frontend i18next convention.
 Interpolation uses {{variable}} syntax matching i18next.
 
-Supports 11 languages: en, fr, de, es, it, pt, ru, sv, nl, pl, zh
+Supports 11 languages: en, fr, de, es, it, pt, ru, sv, nl, pl, zh-CN
 """
 
 import json
@@ -24,7 +24,19 @@ from app.core.logging.config import get_logger
 
 logger = get_logger(__name__, "app")
 
-SUPPORTED_LANGUAGES = ("en", "fr", "de", "es", "it", "pt", "ru", "sv", "nl", "pl", "zh")
+SUPPORTED_LANGUAGES = (
+    "en",
+    "fr",
+    "de",
+    "es",
+    "it",
+    "pt",
+    "ru",
+    "sv",
+    "nl",
+    "pl",
+    "zh-CN",
+)
 
 
 def _resolve_locales_dir() -> Path:
@@ -52,6 +64,23 @@ _LOCALES_DIR = _resolve_locales_dir()
 
 # In-memory cache: language -> parsed JSON dict
 _cache: Dict[str, Dict[str, Any]] = {}
+
+
+def normalize_report_language(language: str) -> str:
+    """Return the canonical report locale for a requested language tag."""
+    lower_language = (language or "en").strip().lower()
+
+    if (
+        lower_language == "zh"
+        or lower_language == "zh-cn"
+        or lower_language == "zh-hans"
+        or lower_language.startswith("zh-cn-")
+        or lower_language.startswith("zh-hans-")
+    ):
+        return "zh-CN"
+
+    primary_language = lower_language.split("-")[0]
+    return primary_language if primary_language in SUPPORTED_LANGUAGES else "en"
 
 
 def _load_locale(language: str) -> Dict[str, Any]:
@@ -108,7 +137,7 @@ class ReportTranslator:
     """
 
     def __init__(self, language: str = "en", date_format: str = "mdy"):
-        self._language = language if language in SUPPORTED_LANGUAGES else "en"
+        self._language = normalize_report_language(language)
         self._date_format = date_format if date_format in _DATE_FORMATS else "mdy"
         self._data = _load_locale(self._language)
         self._en_data = _load_locale("en") if self._language != "en" else self._data
@@ -212,7 +241,7 @@ def get_translator(language: str = "en", date_format: str = "mdy") -> ReportTran
     """Create a ReportTranslator for the given language and date format.
 
     Args:
-        language: ISO 639-1 language code (en, fr, de, es, it, pt, ru, sv, nl, pl, zh)
+        language: supported language code (en, fr, de, es, it, pt, ru, sv, nl, pl, zh-CN)
         date_format: Date format preference (mdy, dmy, ymd)
 
     Returns:

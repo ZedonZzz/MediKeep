@@ -339,7 +339,11 @@ function ThemedMantineProvider({ children }) {
     >
       <Notifications />
       <ResponsiveProvider>
-        <DatesProvider settings={{ locale: i18n.language }}>
+        <DatesProvider
+          settings={{
+            locale: i18n.language === 'zh-CN' ? 'zh' : i18n.language,
+          }}
+        >
           {children}
         </DatesProvider>
       </ResponsiveProvider>

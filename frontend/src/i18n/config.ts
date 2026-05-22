@@ -39,9 +39,9 @@ i18n
     fallbackLng: 'en',
     debug: isDevelopment(),
 
-    // Only load the primary language code (e.g., 'en' not 'en-US')
-    // This ensures i18n.language always matches our supported language codes
-    load: 'languageOnly',
+    // Load exact locale tags where they matter (e.g., zh-CN), while detector
+    // normalization below maps regional variants back to supported locale files.
+    load: 'currentOnly',
 
     // English is bundled inline (see imports above); other languages load via HTTP backend.
     partialBundledLanguages: true,
@@ -107,6 +107,21 @@ i18n
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
+      convertDetectedLanguage: (lng: string) => {
+        const lowerLng = lng.toLowerCase();
+
+        if (
+          lowerLng === 'zh' ||
+          lowerLng === 'zh-cn' ||
+          lowerLng === 'zh-hans' ||
+          lowerLng.startsWith('zh-cn-') ||
+          lowerLng.startsWith('zh-hans-')
+        ) {
+          return 'zh-CN';
+        }
+
+        return lowerLng.split('-')[0];
+      },
     },
 
     react: {

@@ -28,20 +28,34 @@ const LANGUAGES: Language[] = [
   { value: 'sv', label: 'Svenska', shortLabel: 'SV' },
   { value: 'nl', label: 'Nederlands', shortLabel: 'NL' },
   { value: 'pl', label: 'Polski', shortLabel: 'PL' },
-  { value: 'zh', label: '中文', shortLabel: 'ZH' },
+  { value: 'zh-CN', label: '简体中文', shortLabel: '中' },
 ];
 
 const SUPPORTED_LANGUAGE_CODES = LANGUAGES.map(l => l.value);
 
 /**
  * Normalizes a language code to match our supported languages.
- * Handles locale codes (e.g., 'en-US' -> 'en') and validates against supported languages.
+ * Handles locale codes (e.g., 'en-US' -> 'en', 'zh' -> 'zh-CN') and validates against supported languages.
  */
 const normalizeLanguage = (lang: string): string => {
   if (!lang) return 'en';
 
+  const normalized = lang.trim();
+  const lowerLang = normalized.toLowerCase();
+
+  // Treat legacy/generic Chinese and Simplified Chinese browser tags as zh-CN.
+  if (
+    lowerLang === 'zh' ||
+    lowerLang === 'zh-cn' ||
+    lowerLang === 'zh-hans' ||
+    lowerLang.startsWith('zh-cn-') ||
+    lowerLang.startsWith('zh-hans-')
+  ) {
+    return 'zh-CN';
+  }
+
   // Extract primary language code (e.g., 'en-US' -> 'en')
-  const primaryLang = lang.split('-')[0].toLowerCase();
+  const primaryLang = lowerLang.split('-')[0];
 
   // Return the primary language if supported, otherwise fallback to 'en'
   return SUPPORTED_LANGUAGE_CODES.includes(primaryLang) ? primaryLang : 'en';
@@ -50,7 +64,7 @@ const normalizeLanguage = (lang: string): string => {
 /**
  * LanguageSwitcher - Component for switching application language
  *
- * Displays available languages (EN/FR/DE/ES)
+ * Displays available languages (EN/FR/DE/ES/ZH-CN)
  * Uses local state for immediate UI feedback and syncs with i18next
  */
 const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({

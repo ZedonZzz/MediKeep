@@ -28,8 +28,27 @@ const SUPPORTED_LANGUAGES = [
   'sv',
   'nl',
   'pl',
-  'zh',
+  'zh-CN',
 ];
+
+const normalizeLanguage = language => {
+  if (!language) return 'en';
+
+  const normalized = String(language).trim();
+  const lowerLanguage = normalized.toLowerCase();
+
+  if (
+    lowerLanguage === 'zh' ||
+    lowerLanguage === 'zh-cn' ||
+    lowerLanguage === 'zh-hans' ||
+    lowerLanguage.startsWith('zh-cn-') ||
+    lowerLanguage.startsWith('zh-hans-')
+  ) {
+    return 'zh-CN';
+  }
+
+  return lowerLanguage.split('-')[0];
+};
 
 /**
  * User Preferences Context
@@ -68,16 +87,17 @@ export const UserPreferencesProvider = ({ children }) => {
         // i18next only reads from localStorage/browser detection on startup.
         if (
           userPrefs.language &&
-          SUPPORTED_LANGUAGES.includes(userPrefs.language) &&
-          userPrefs.language !== i18n.language
+          SUPPORTED_LANGUAGES.includes(normalizeLanguage(userPrefs.language)) &&
+          normalizeLanguage(userPrefs.language) !== i18n.language
         ) {
+          const normalizedLanguage = normalizeLanguage(userPrefs.language);
           try {
-            await i18n.changeLanguage(userPrefs.language);
+            await i18n.changeLanguage(normalizedLanguage);
           } catch (langErr) {
             frontendLogger.logError(
               'Failed to apply saved language preference',
               {
-                language: userPrefs.language,
+                language: normalizedLanguage,
                 error: langErr.message,
                 component: 'UserPreferencesContext',
               }
@@ -172,9 +192,7 @@ export const UserPreferencesProvider = ({ children }) => {
   useEffect(() => {
     const syncAutoDetectedLanguage = async () => {
       if (isAuthenticated && user && preferences && !loading) {
-        const currentLanguage = (i18n.language || 'en')
-          .split('-')[0]
-          .toLowerCase();
+        const currentLanguage = normalizeLanguage(i18n.language || 'en');
         const savedLanguage = preferences.language;
 
         // Only save if user has no language preference yet (still on default 'en')

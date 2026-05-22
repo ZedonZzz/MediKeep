@@ -273,7 +273,7 @@ class TestUserPreferencesLanguage:
             "sv",
             "nl",
             "pl",
-            "zh",
+            "zh-CN",
         ]
 
         for lang in supported_languages:

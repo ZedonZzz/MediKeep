@@ -44,7 +44,7 @@ class CustomReportPDFGenerator:
 
     # CJK languages that require dedicated CJK fonts for PDF rendering.
     # Latin-based fonts (DejaVu, Arial) lack glyphs for these scripts.
-    CJK_LANGUAGES = frozenset({"zh", "ja", "ko"})
+    CJK_LANGUAGES = frozenset({"zh", "zh-CN", "ja", "ko"})
 
     def __init__(self):
         self._register_fonts()
